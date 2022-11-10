@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.newCoder.community.dao.UserMapper">
+    <sql id="selectFields">
+        id,username,password ,salt ,email ,type  ,status , activation_code , header_url  ,create_time
+    </sql>
+    <sql id="insertFields">
+        username,password ,salt ,email ,type ,status,activation_code , header_url  ,create_time
+    </sql>
+    <insert id="insertUser" parameterType="com.newCoder.community.entity.User" keyProperty="id">
+        insert  into user(<include refid="insertFields"></include>)
+        values (#{username},#{password},#{salt},#{email},#{type},#{status},#{activationCode},#{headerUrl},#{createTime});
+    </insert>
+    <update id="updateStatus">
+        UPDATE	USER SET status = #{status} WHERE id = #{id};
+    </update>
+    <update id="updateHeaderUrl">
+        UPDATE	USER SET header_url = #{headerUrl} WHERE id = #{id};
+    </update>
+    <update id="updatePassword">
+        UPDATE	USER SET PASSWORD = #{password} WHERE id = #{id};
+    </update>
+
+    <select id="selectById" resultType="com.newCoder.community.entity.User">
+        SELECT <include refid="selectFields"></include> FROM USER WHERE id = #{id};
+    </select>
+    <select id="selectByName" resultType="com.newCoder.community.entity.User">
+        SELECT <include refid="selectFields"></include> FROM USER WHERE username = #{username};
+    </select>
+    <select id="selectByEmail" resultType="com.newCoder.community.entity.User">
+        SELECT <include refid="selectFields"></include> FROM USER WHERE email = #{email};
+    </select>
+</mapper>
