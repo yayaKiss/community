@@ -53,6 +53,11 @@ public class UserDaoTest {
 
         row = userMapper.updateStatus(1,2);
         System.out.println(row);
+
+        row = userMapper.updatePasswordByEmail("nowcoder1@sina.com", "123");
+        System.out.println(row);
     }
+
+
 
 }

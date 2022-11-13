@@ -12,5 +12,5 @@ public class LoginVo {
     private String username;
     private String password;
     private String code;
-    private Boolean rememberme;
+    private boolean rememberme;
 }

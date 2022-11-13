@@ -1,3 +1,5 @@
+var contextPath = "http://localhost:8080/community";
+
 window.alert = function(message) {
 	if(!$(".alert-box").length) {
 		$("body").append(

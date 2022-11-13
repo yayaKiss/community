@@ -1,5 +1,8 @@
 server:
   port: 8080
+  servlet:
+    context-path: /community
+
 spring:
   thymeleaf:
     cache: false
@@ -9,6 +12,26 @@ spring:
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+
+  mail:
+    host: smtp.qq.com
+    port: 465
+    username: 2085576513@qq.com
+    password: zfgyutghrstacafc
+    protocol: smtps
+    properties:
+      mail:
+        smtp:
+          ssl:
+            enable: true
+
+
+  redis:
+    host: 192.168.200.136
+    password: li158158@yt
+  session:
+    store-type: redis
 
 
 mybatis:
@@ -23,4 +46,12 @@ logging:
   file:
     name: E:/Java/Community/community.log
 
+community:
+  path:
+    domain: http://localhost:8080
+    upload: E:/Java/Community/data/upload
+  thread:
+    corePoolSize: 20
+    maxPoolSize: 20
+    keepAliveTime: 200
 

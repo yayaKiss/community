@@ -22,6 +22,9 @@
     <update id="updatePassword">
         UPDATE	USER SET PASSWORD = #{password} WHERE id = #{id};
     </update>
+    <update id="updatePasswordByEmail">
+        update user set password = #{password} where email = #{email} and status = 1;
+    </update>
 
     <select id="selectById" resultType="com.newCoder.community.entity.User">
         SELECT <include refid="selectFields"></include> FROM USER WHERE id = #{id};
