@@ -6,6 +6,14 @@
     <sql id="selectFields">
         id  ,user_id  ,title   ,content  ,type  ,status  ,create_time  ,comment_count   ,score
     </sql>
+    <sql id="insertFields">
+        user_id  ,title   ,content  ,type  ,status  ,create_time  ,comment_count   ,score
+    </sql>
+    <update id="updatePostCommentCount">
+        update `discuss_post`
+        set comment_count = #{commentCount}
+        where id = #{id}
+    </update>
     <select id="selectDiscussPosts" resultType="com.newCoder.community.entity.DiscussPost">
         select <include refid="selectFields"></include>
         from discuss_post
@@ -24,5 +32,16 @@
         <if test="userId != 0">
             and user_id = #{userId}
         </if>
+    </select>
+
+    <insert id="insertDiscussPost" keyProperty="id">
+        INSERT INTO `discuss_post`(<include refid="insertFields"></include>)
+        VALUES(#{userId},#{title},#{content},#{type},#{status},#{createTime},#{commentCount},#{score})
+    </insert>
+
+    <select id="selectDiscussPostDetail" resultType="com.newCoder.community.entity.DiscussPost">
+        select <include refid="selectFields"></include>
+        from `discuss_post`
+        where id = #{postId}
     </select>
 </mapper>

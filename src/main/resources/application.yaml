@@ -28,7 +28,7 @@ spring:
 
 
   redis:
-    host: 192.168.200.136
+    host: 192.168.200.138
     password: li158158@yt
   session:
     store-type: redis

@@ -35,4 +35,6 @@ public interface UserService {
     int updateHeaderUrl(int id, String headerUrl);
 
     Map<String, Object> updateCode(int uid, String salt,UpdateCodeVo vo);
+
+    User findUserByUserName(String toName);
 }

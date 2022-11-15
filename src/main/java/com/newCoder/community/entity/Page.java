@@ -12,10 +12,9 @@ public class Page {
     private int limit = 10;
     //总评论数
     private int rows;
-    //总页码
-    private int total;
     //路径
     private String path;
+
 
     public int getCurrent() {
         return current;
@@ -54,12 +53,11 @@ public class Page {
     }
     //获取总的页码
     public int getTotal(){
-        total = rows % limit == 0 ? rows / limit : rows / limit + 1;
-        return total;
+        return rows % limit == 0 ? rows / limit : rows / limit + 1;
     }
 
     //获取当前页的起始行
-    public int getOffSet(){
+    public int getOffset(){
         return (current - 1) * limit;
     }
     //获取一系列页码

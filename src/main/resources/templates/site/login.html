@@ -105,7 +105,7 @@
 							<input type="checkbox" id="remember-me" name="rememberme"
 								   th:checked="${loginVo==null?'false':loginVo.rememberme}">
 							<label class="form-check-label" for="remember-me">记住我</label>
-							<a th:href="@{/forget.html}" class="text-danger float-right">忘记密码?</a>
+							<a th:href="@{/user/forget.html}" class="text-danger float-right">忘记密码?</a>
 						</div>
 					</div>				
 					<div class="form-group row mt-4">
@@ -186,7 +186,7 @@
 	<script th:src="@{/js/global.js}"></script>
 	<script>
 		function refresh_kaptcha() {
-			var path = contextPath + "/kaptcha?p=" + Math.random();
+			var path = CONTEXT_PATH + "/kaptcha?p=" + Math.random();
 			$("#refresh_code").attr('src',path);
 		}
 	</script>

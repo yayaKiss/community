@@ -1,24 +1,24 @@
 package com.newCoder.community.controller;
 
-import com.alibaba.druid.support.json.JSONUtils;
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.newCoder.community.dao.UserMapper;
+import com.newCoder.community.entity.Page;
 import com.newCoder.community.entity.User;
 import com.newCoder.community.util.JsonResult;
 import com.newCoder.community.vo.LoginVo;
-import com.sun.org.apache.xpath.internal.operations.Mod;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lijie
@@ -66,6 +66,33 @@ public class testController {
             return "/test";
         }
         return "/index";
+    }
+
+    @PostMapping("/getJson")
+    @ResponseBody
+    public JsonResult getJson(String name,String age){
+        System.out.println(name);
+        System.out.println(age);
+        return JsonResult.ok();
+    }
+
+    @PostMapping("/getJsonString")
+    @ResponseBody
+    public String getJsonString(String name,String age){
+        System.out.println(name);
+        System.out.println(age);
+        return JSONObject.toJSONString(JsonResult.ok());
+    }
+
+    @GetMapping("/getUserList")
+    public String getUserList(Model model, Page page){
+        List<User> userList = new ArrayList<>();
+        for(int i = 0;i < 5;i++){
+            User user = userMapper.selectById(111 + i);
+            userList.add(user);
+        }
+        model.addAttribute("userList",userList);
+        return "/test";
     }
 
 }

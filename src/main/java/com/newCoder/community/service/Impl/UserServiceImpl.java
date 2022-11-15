@@ -87,7 +87,7 @@ public class UserServiceImpl implements UserService {
         user.setType(0);
         user.setStatus(0);
         user.setActivationCode(CommunityUtils.generateUUID());
-        user.setHeaderUrl(String.format("http://images.newcoder.com/head/%dt.png",new Random().nextInt(1000)));
+        user.setHeaderUrl(String.format("http://images.nowcoder.com/head/%dt.png",new Random().nextInt(1000)));
         user.setCreateTime(new Date());
         userMapper.insertUser(user);
 
@@ -224,5 +224,10 @@ public class UserServiceImpl implements UserService {
         newPassword = CommunityUtils.MD5(newPassword + salt);
         userMapper.updatePassword(uid,newPassword);
         return map;
+    }
+
+    @Override
+    public User findUserByUserName(String toName) {
+        return userMapper.selectByName(toName);
     }
 }

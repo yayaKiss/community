@@ -1,5 +1,6 @@
 package com.newCoder.community.controller;
 
+import com.newCoder.community.annotation.LoginRequired;
 import com.newCoder.community.entity.LoginTicket;
 import com.newCoder.community.entity.User;
 import com.newCoder.community.service.UserService;
@@ -44,7 +45,19 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @GetMapping("/setting.html")
+    @LoginRequired
+    public String setting(){
+        return "/site/setting";
+    }
 
+    @GetMapping("/forget.html")
+    @LoginRequired
+    public String forget(){
+        return "/site/forget";
+    }
+
+    @LoginRequired
     @PostMapping("/upload")
     public String uploadImage(MultipartFile headImage, Model model){
         if(headImage.isEmpty()){
@@ -100,6 +113,7 @@ public class UserController {
         }
     }
 
+    @LoginRequired
     @PostMapping("/updateCode")
     public String updateCode(UpdateCodeVo vo, Model model){
         User user = hostHolder.getValue();

@@ -66,7 +66,7 @@ public class HomeController {
         page.setRows(discussPostService.findDiscussPostRows(0));
         page.setPath("/index");
 
-        List<DiscussPost> list = discussPostService.findDiscussPosts(0, page.getOffSet(), page.getLimit());
+        List<DiscussPost> list = discussPostService.findDiscussPosts(0, page.getOffset(), page.getLimit());
         List<Map<String,Object>> discussPosts = new ArrayList<>();
         if(list != null){
             for(DiscussPost post : list){
@@ -86,7 +86,7 @@ public class HomeController {
         Map<String ,Object> map = userService.regist(user);
         if(map == null || map.isEmpty()){ //注册成功
             model.addAttribute("msg", "注册成功，我们已经向您的邮箱发送一封邮件，请尽快激活账号");
-            model.addAttribute("target","/index.html");
+            model.addAttribute("target",contextPath + "/index");
             return "/site/operate-result";
         }else{
             model.addAttribute("usernameMsg",map.get("usernameMsg"));
@@ -101,13 +101,13 @@ public class HomeController {
         int res = userService.activation(id, activeCode);
         if(res == ActivationConstant.ACTIVATION_SUCCESS){
             model.addAttribute("msg","激活成功,您的账号可以正常使用了!");
-            model.addAttribute("target","/login.html");
+            model.addAttribute("target",contextPath + "/login.html");
         }else if(res == ActivationConstant.ACTIVATION_REPEAT){
             model.addAttribute("msg","您的账号已被激活!");
-            model.addAttribute("target","/login.html");
+            model.addAttribute("target",contextPath +"/login.html");
         }else{
             model.addAttribute("msg","激活失败,您提供的激活码无效!");
-            model.addAttribute("target","/index.html");
+            model.addAttribute("target",contextPath + "/index");
         }
         return "/site/operate-result";
     }
