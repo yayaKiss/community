@@ -32,7 +32,7 @@ public class LoginInterceptor implements HandlerInterceptor {
         String ticket = CookieUtils.getValue(request, "ticket");
         if(ticket != null){
             LoginTicket loginTicket = userService.findLoginTicket(ticket);
-            //凭证没有失效或过期
+            //凭证未失效或过期
             if(loginTicket.getStatus() == 0 && loginTicket.getExpired().after(new Date())){
                 //根据凭证查询用户
                 User user = userService.findUserById(loginTicket.getUserId());

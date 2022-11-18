@@ -20,5 +20,4 @@ public interface DiscussPostService {
 
     DiscussPost findDiscussPostDetail(int postId);
 
-    int addCommentCount(int id,int commentCount);
 }

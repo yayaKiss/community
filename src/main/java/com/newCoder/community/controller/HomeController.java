@@ -1,23 +1,25 @@
 package com.newCoder.community.controller;
 
-import com.alibaba.fastjson.JSON;
 import com.google.code.kaptcha.Producer;
 import com.newCoder.community.constant.ActivationConstant;
-import com.newCoder.community.constant.ForgetCode;
+import com.newCoder.community.constant.EntityConstant;
 import com.newCoder.community.constant.UserExpireConstant;
 import com.newCoder.community.entity.DiscussPost;
 import com.newCoder.community.entity.Page;
 import com.newCoder.community.entity.User;
 import com.newCoder.community.service.DiscussPostService;
+import com.newCoder.community.service.LikeService;
 import com.newCoder.community.service.UserService;
 import com.newCoder.community.util.CommunityUtils;
+import com.newCoder.community.util.HostHolder;
 import com.newCoder.community.util.JsonResult;
+import com.newCoder.community.util.RedisKeyUtils;
 import com.newCoder.community.vo.LoginVo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +29,6 @@ import javax.imageio.ImageIO;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -54,7 +55,11 @@ public class HomeController {
     @Autowired
     private Producer kaptcha;
     @Autowired
-    private StringRedisTemplate stringRedisTemplate;
+    private RedisTemplate redisTemplate;
+    @Autowired
+    private LikeService likeService;
+    @Autowired
+    private HostHolder hostHolder;
 
     @Value("${server.servlet.context-path}")
     private String contextPath;
@@ -71,7 +76,15 @@ public class HomeController {
         if(list != null){
             for(DiscussPost post : list){
                 Map<String,Object> map = new HashMap<>();
+                //帖子
                 map.put("post",post);
+                //点赞数量和状态
+                long likeCount = likeService.findEntityLikeCount(EntityConstant.ENTITY_TYPE_POST, post.getId());
+                int likeStatus = hostHolder.getValue() == null ? 0 :
+                        likeService.findEntityLikeStatus(hostHolder.getValue().getId(), EntityConstant.ENTITY_TYPE_POST, post.getId());
+                map.put("likeCount",likeCount);
+                map.put("likeStatus",likeStatus);
+                //用户
                 User user = userService.findUserById(post.getUserId());
                 map.put("user",user);
                 discussPosts.add(map);
@@ -113,14 +126,21 @@ public class HomeController {
     }
 
     @GetMapping("/kaptcha")
-    public void getKaptcha(HttpServletResponse response, HttpSession session){
+    public void getKaptcha(HttpServletResponse response /**HttpSession session**/){
         //生成验证码和图片
         String text = kaptcha.createText();
         BufferedImage image = kaptcha.createImage(text);
 
-        //保存验证码在服务端
-        session.setAttribute("kaptcha",text);
-
+//        //保存验证码在服务端
+//        session.setAttribute("kaptcha",text);
+        //验证码保存到redis，在cookie中存到owner，之后取验证码时识别
+        String kaptchaOwner = CommunityUtils.generateUUID().toString();
+        Cookie cookie = new Cookie("kaptchaOwner",kaptchaOwner);
+        cookie.setPath(contextPath);
+        cookie.setMaxAge(60);
+        response.addCookie(cookie);
+        String redisKey = RedisKeyUtils.getKaptchaKey(kaptchaOwner);
+        redisTemplate.opsForValue().set(redisKey,text,60,TimeUnit.SECONDS);
         //将图片输出到客户端
         response.setContentType("image/png");
         try {
@@ -133,9 +153,17 @@ public class HomeController {
 
 
     @PostMapping("/login")
-    public String login(LoginVo user, HttpSession session, Model model,HttpServletResponse response){
+    public String login(LoginVo user, /**HttpSession session,**/ Model model
+                        ,HttpServletResponse response ,@CookieValue("kaptchaOwner")String kaptchaOwner){
         String code = user.getCode();
-        String kaptcha = (String) session.getAttribute("kaptcha");
+//        String kaptcha = (String) session.getAttribute("kaptcha");
+        //从redis中取验证码
+        String kaptcha = null;
+        if(kaptchaOwner != null){
+            String redisKey = RedisKeyUtils.getKaptchaKey(kaptchaOwner);
+            kaptcha = (String) redisTemplate.opsForValue().get(redisKey);
+        }
+
         //判断验证码
         if(StringUtils.isEmpty(code) || StringUtils.isEmpty(kaptcha) || !code.equalsIgnoreCase(kaptcha)){
             model.addAttribute("codeMsg","验证码错误");
@@ -162,33 +190,35 @@ public class HomeController {
         return "redirect:/index";
     }
 
-    @GetMapping("/requireCode")
+    @PostMapping("/requireCode")
     @ResponseBody
-    public String forgetCode(@RequestParam("email") String email){
+    public JsonResult forgetCode(@RequestParam("email") String email){
         User user = userService.findUserByEmail(email);
         if(user == null){
-            return "请输入正确的邮箱!";
+            return JsonResult.error("请输入正确的邮箱");
         }
-        String codeAndTime = stringRedisTemplate.opsForValue().get(ForgetCode.FORGET_CODE_PREFIX + email);
+        String redisKey = RedisKeyUtils.getEmailCode(email);
+        String codeAndTime = (String) redisTemplate.opsForValue().get(redisKey);
         if(!StringUtils.isEmpty(codeAndTime)){
             long time = Long.parseLong(codeAndTime.split("-")[1]);
             if(System.currentTimeMillis() - time < 60 * 1000){
-                return "您的验证码已发，请稍后重试";
+                return JsonResult.error("您的验证码已发，请稍后重试");
             }
         }
         String code = CommunityUtils.generateUUID().substring(0,5);
-        stringRedisTemplate.opsForValue().set(ForgetCode.FORGET_CODE_PREFIX + email,code + "-" + System.currentTimeMillis()
-                ,5, TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set(redisKey,code + "-" + System.currentTimeMillis()
+                ,300, TimeUnit.SECONDS);
         CompletableFuture<Void> forgetFuture = CompletableFuture.runAsync(() -> {
             userService.sendCode(email,code);
         });
-        return "您的验证码已发送成功，请注意查收";
+        return JsonResult.ok("您的验证码已发送成功，请注意查收");
     }
 
     @PostMapping("/updateCode")
     public String updateCode(String email,String code,String password,Model model){
-        String key = ForgetCode.FORGET_CODE_PREFIX + email;
-        String codeAndTime = stringRedisTemplate.opsForValue().get(key);
+        //user:code:email
+        String redisKey = RedisKeyUtils.getEmailCode(email);
+        String codeAndTime = (String) redisTemplate.opsForValue().get(redisKey);
         //验证码错误
         if(StringUtils.isEmpty(code) || StringUtils.isEmpty(codeAndTime) || !code.equals(codeAndTime.split("-")[0])){
             model.addAttribute("codeMsg","验证码错误");
@@ -203,6 +233,13 @@ public class HomeController {
         }
 
         return "redirect:/login.html";
+    }
+
+
+
+    @GetMapping("/error")
+    public String getErrorPage(){
+        return "/error/500";
     }
 
 }

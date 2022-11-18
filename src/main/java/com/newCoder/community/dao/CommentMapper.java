@@ -1,6 +1,7 @@
 package com.newCoder.community.dao;
 
 import com.newCoder.community.entity.Comment;
+import com.newCoder.community.entity.DiscussPost;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -19,5 +20,10 @@ public interface CommentMapper {
 
     int insertComment(Comment comment);
 
+    int selectCommentPostCount(int userId,int entityType);
+
+    List<Comment> selectCommentPosts(int userId,int offset,int limit);
+
+    Comment selectCommentById(int id);
 
 }

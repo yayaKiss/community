@@ -30,8 +30,14 @@ spring:
   redis:
     host: 192.168.200.138
     password: li158158@yt
-  session:
-    store-type: redis
+
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: test-consumer-group
+      enable-auto-commit: true
+      auto-commit-interval: 3000
 
 
 mybatis:
@@ -54,4 +60,5 @@ community:
     corePoolSize: 20
     maxPoolSize: 20
     keepAliveTime: 200
+
 

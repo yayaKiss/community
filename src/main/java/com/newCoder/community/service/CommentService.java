@@ -1,6 +1,7 @@
 package com.newCoder.community.service;
 
 import com.newCoder.community.entity.Comment;
+import com.newCoder.community.entity.DiscussPost;
 
 import java.util.List;
 
@@ -10,9 +11,15 @@ import java.util.List;
  * @Desc
  */
 public interface CommentService {
-    List<Comment> getCommentsByEntity(int entityType,int entityId,int offset,int limit);
+    List<Comment> findCommentsByEntity(int entityType,int entityId,int offset,int limit);
 
-    int getCommentsCount(int entityType,int entityId);
+    int findCommentsCount(int entityType,int entityId);
 
     int addComment(Comment comment);
+
+    int findCommentPostCount(int userId);
+
+    List<Comment> findCommentPosts(int userId,int offset,int limit);
+
+    Comment findCommentById(int id);
 }

@@ -42,6 +42,7 @@ public class QQMailClient {
             helper.setText(content,true);
 
             mailSender.send(helper.getMimeMessage());
+            log.info("邮箱验证码发送成功!");
         } catch (MessagingException e) {
             log.error("发送邮件失败!" + e.getMessage());
         }

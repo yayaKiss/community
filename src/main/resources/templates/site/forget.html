@@ -176,18 +176,13 @@
 	<script th:src="@{/js/global.js}"></script>
 	<script>
 		function require_code(){
-			$.ajax({
-				type: 'get', /*  请求方式  GET  、 POST 、 PUT 等.. */
-				url: 'requireCode', /*  后台的接口(findApi)  使用相对路径即可 */
-				data: {email: $("#your-email").val()},
-				dateType: 'json', /*  期望服务器返回的数据类型格式 */
-				success: function(result) { // 请求后台 应答成功返回来的数据
-					alert(result);
-				},
-				error: function(xhr, status, error) { // 请求失败运行的函数
-					console.log(error);
+			$.post(
+				CONTEXT_PATH + "/requireCode",
+				{"email":$("#your-email").val()},
+				function (data) {
+					alert(data.msg);
 				}
-			});
+			);
 		}
 	</script>
 </body>

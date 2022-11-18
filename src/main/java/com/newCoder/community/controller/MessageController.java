@@ -1,5 +1,6 @@
 package com.newCoder.community.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.newCoder.community.annotation.LoginRequired;
 import com.newCoder.community.constant.LetterStatus;
 import com.newCoder.community.entity.Message;
@@ -55,8 +56,8 @@ public class MessageController {
                 messageVo.put("unreadCount",messageService.findUnreadLetterCount(userId,message.getConversationId()));
                 //消息私信数量（已读和未读）
                 messageVo.put("letterCount",messageService.findLetterCount(message.getConversationId()));
-                //每一个消息来自谁
-                user = userService.findUserById(message.getFromId());
+                //每一个消息 对面user
+                user = getTarget(message.getConversationId());
                 messageVo.put("user",user);
 
                 messageVoList.add(messageVo);

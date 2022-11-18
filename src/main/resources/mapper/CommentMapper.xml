@@ -25,4 +25,23 @@
         from comment
         where status = 0 and entity_type = #{entityType} and entity_id = #{entityId}
     </select>
+
+    <select id="selectCommentPostCount" resultType="java.lang.Integer">
+        select count(id)
+        from comment
+        where status = 0 and entity_type = #{entityType} and user_id = #{userId}
+    </select>
+    <select id="selectCommentPosts" resultType="com.newCoder.community.entity.Comment">
+        select <include refid="selectFields"></include>
+        from comment
+        where status = 0 and entity_type = 1 and user_id = #{userId}
+        limit #{offset},#{limit}
+    </select>
+
+    <select id="selectCommentById" resultType="Comment">
+        select <include refid="selectFields"></include>
+        from comment where id = #{id}
+    </select>
+
+
 </mapper>

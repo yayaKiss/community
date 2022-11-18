@@ -1,16 +1,20 @@
 package com.newCoder.community.controller;
 
 import com.newCoder.community.annotation.LoginRequired;
-import com.newCoder.community.entity.LoginTicket;
-import com.newCoder.community.entity.User;
-import com.newCoder.community.service.UserService;
+import com.newCoder.community.constant.EntityConstant;
+import com.newCoder.community.entity.*;
+import com.newCoder.community.service.*;
 import com.newCoder.community.util.CommunityUtils;
 import com.newCoder.community.util.HostHolder;
+import com.newCoder.community.util.RedisKeyUtils;
+import com.newCoder.community.vo.PostVo;
+import com.newCoder.community.vo.ReplyVo;
 import com.newCoder.community.vo.UpdateCodeVo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +25,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -44,6 +50,15 @@ public class UserController {
     private HostHolder hostHolder;
     @Autowired
     private UserService userService;
+    @Autowired
+    private LikeService likeService;
+    @Autowired
+    private FollowService followService;
+    @Autowired
+    private DiscussPostService discussPostService;
+    @Autowired
+    private CommentService commentService;
+
 
     @GetMapping("/setting.html")
     @LoginRequired
@@ -52,7 +67,6 @@ public class UserController {
     }
 
     @GetMapping("/forget.html")
-    @LoginRequired
     public String forget(){
         return "/site/forget";
     }
@@ -131,5 +145,99 @@ public class UserController {
         }
 
         return "redirect:/logout";
+    }
+
+    //个人主页
+    @GetMapping("/profile/{userId}")
+    public String profile(@PathVariable("userId") int userId,Model model){
+        User user = userService.findUserById(userId);
+        if(user == null){
+            throw new RuntimeException("访问用户不存在");
+        }
+        model.addAttribute("user",user);
+        //点赞数量
+        int likeCount = likeService.findUserLikeCount(userId);
+        model.addAttribute("likeCount",likeCount);
+        //粉丝数量
+        long followerCount = followService.findEntityFollowerCount(EntityConstant.ENTITY_TYPE_USER,userId);
+        model.addAttribute("followerCount",followerCount);
+        //关注数量
+        long followeeCount = followService.findEntityFolloweeCount(userId,EntityConstant.ENTITY_TYPE_USER);
+        model.addAttribute("followeeCount",followeeCount);
+        //关注状态
+        boolean followStatus = false;
+        if(hostHolder.getValue() != null){
+            followStatus = followService.findUserFollowStatus(hostHolder.getValue().getId(), EntityConstant.ENTITY_TYPE_USER ,userId);
+        }
+        model.addAttribute("followStatus",followStatus);
+        return "/site/profile";
+    }
+
+    @GetMapping("/myPost/{userId}")
+    public String myPost(@PathVariable("userId")int userId, Page page, Model model){
+        User user = userService.findUserById(userId);
+        if(user == null){
+            throw new RuntimeException("用户不存在");
+        }
+        //用户id
+        model.addAttribute("userId",user.getId());
+        //帖子总数
+        int postCount = discussPostService.findDiscussPostRows(user.getId());
+        model.addAttribute("postCount",postCount);
+        //分页设置
+        page.setRows(postCount);
+        page.setLimit(5);
+        page.setPath("/user/myPost/"+ userId);
+
+        List<DiscussPost> posts = discussPostService.findDiscussPosts(user.getId(), page.getOffset(), page.getLimit());
+        List<PostVo> postVos = new ArrayList<>();
+        if(posts != null){
+            for(DiscussPost post : posts){
+                PostVo vo = new PostVo();
+                vo.setId(post.getId());
+                vo.setTitle(post.getTitle());
+                vo.setContent(post.getContent());
+                vo.setPublishTime(post.getCreateTime());
+                long likeCount = likeService.findEntityLikeCount(EntityConstant.ENTITY_TYPE_POST, post.getId());
+                vo.setLikeCount(likeCount);
+
+                postVos.add(vo);
+            }
+        }
+        model.addAttribute("postVos",postVos);
+        return "/site/my-post";
+    }
+
+    @GetMapping("/myReply/{userId}")
+    public String myReply(@PathVariable("userId")int userId,Page page,Model model){
+        User user = userService.findUserById(userId);
+        if(user == null){
+            throw new RuntimeException("用户不能为空");
+        }
+        model.addAttribute("userId",user.getId());
+        int commentPostCount = commentService.findCommentPostCount(user.getId());
+        model.addAttribute("commentPostCount",commentPostCount);
+
+        page.setRows(commentPostCount);
+        page.setPath("/user/myReply/" + userId);
+        page.setLimit(5);
+
+        List<Comment> commentPosts = commentService.findCommentPosts(user.getId(),page.getOffset(),page.getLimit());
+        List<ReplyVo> replyVos = new ArrayList<>();
+        if(commentPosts != null){
+            for (Comment comment : commentPosts){
+                ReplyVo vo  = new ReplyVo();
+                vo.setPostId(comment.getEntityId());
+                DiscussPost post = discussPostService.findDiscussPostDetail(comment.getEntityId());
+                vo.setTitle(post.getTitle());
+                vo.setContent(comment.getContent());
+                vo.setPublishTime(comment.getCreateTime());
+
+                replyVos.add(vo);
+            }
+        }
+        model.addAttribute("replyVos",replyVos);
+
+        return "/site/my-reply";
     }
 }

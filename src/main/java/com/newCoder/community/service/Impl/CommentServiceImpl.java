@@ -1,9 +1,10 @@
 package com.newCoder.community.service.Impl;
 
-import com.newCoder.community.constant.CommentType;
+import com.newCoder.community.constant.EntityConstant;
 import com.newCoder.community.dao.CommentMapper;
 import com.newCoder.community.dao.DiscussPostMapper;
 import com.newCoder.community.entity.Comment;
+import com.newCoder.community.entity.DiscussPost;
 import com.newCoder.community.service.CommentService;
 import com.newCoder.community.util.SensitiveWordFilter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,12 +32,12 @@ public class CommentServiceImpl implements CommentService {
     private DiscussPostMapper discussPostMapper;
 
     @Override
-    public List<Comment> getCommentsByEntity(int entityType, int entityId, int offset, int limit) {
+    public List<Comment> findCommentsByEntity(int entityType, int entityId, int offset, int limit) {
         return commentMapper.selectCommentsByEntity(entityType,entityId,offset,limit);
     }
 
     @Override
-    public int getCommentsCount(int entityType, int entityId) {
+    public int findCommentsCount(int entityType, int entityId) {
         return commentMapper.selectCommentsCount(entityType,entityId);
     }
 
@@ -53,12 +54,27 @@ public class CommentServiceImpl implements CommentService {
         int rows = commentMapper.insertComment(comment);
 
         //修改帖子评论数量
-        if(comment.getEntityType() == CommentType.COMMENT_TYPE_POST){
+        if(comment.getEntityType() == EntityConstant.ENTITY_TYPE_COMMENT){
             int count = commentMapper.selectCommentsCount(comment.getEntityType(),comment.getEntityId());
             discussPostMapper.updatePostCommentCount(comment.getEntityId(),count);
         }
 
         return rows;
+    }
+
+    @Override
+    public int findCommentPostCount(int userId) {
+        return commentMapper.selectCommentPostCount(userId,EntityConstant.ENTITY_TYPE_POST);
+    }
+
+    @Override
+    public List<Comment> findCommentPosts(int userId,int offset,int limit) {
+        return commentMapper.selectCommentPosts(userId,offset,limit);
+    }
+
+    @Override
+    public Comment findCommentById(int id) {
+        return commentMapper.selectCommentById(id);
     }
 
 }

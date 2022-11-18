@@ -122,7 +122,7 @@
 				<ul class="list-unstyled">
 					<li class="media pb-3 pt-3 mb-3 border-bottom position-relative" th:each="messageVo:${messageVoList}">
 						<span class="badge badge-danger" th:if="${messageVo.unreadCount > 0}"><i th:text="${messageVo.unreadCount}">3</i></span>
-						<a href="profile.html">
+						<a th:href="@{|/user/profile/${messageVo.user.id}|}">
 							<img th:src="${messageVo.user.headerUrl}" class="mr-4 rounded-circle user-header" alt="用户头像" >
 						</a>
 						<div class="media-body">
