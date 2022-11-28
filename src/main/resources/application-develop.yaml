@@ -1,0 +1,115 @@
+server:
+  port: 8080
+  servlet:
+    context-path:
+
+spring:
+  thymeleaf:
+    cache: false
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    url: jdbc:mysql://localhost/community?useSSL=true&useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+
+
+  mail:
+    host: smtp.qq.com
+    port: 465
+    username: 2085576513@qq.com
+    password: zfgyutghrstacafc
+    protocol: smtps
+    properties:
+      mail:
+        smtp:
+          ssl:
+            enable: true
+
+
+  redis:
+    host: 192.168.200.139
+    password: li158158@yt
+
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: test-consumer-group
+      enable-auto-commit: true
+      auto-commit-interval: 3000
+
+
+  elasticsearch:
+    uris: http://localhost:9200
+
+
+
+  quartz:
+    job-store-type: jdbc
+    scheduler-name: communityScheduler
+    properties:
+      org:
+        quartz:
+          scheduler:
+            instanced: AUTO
+          jobStore:
+            class: org.springframework.scheduling.quartz.LocalDataSourceJobStore
+            driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+            isClustered: true
+          threadPool:
+            class: org.quartz.simpl.SimpleThreadPool
+            threadCount: 5
+
+mybatis:
+  mapper-locations: classpath:/mapper/**/*.xml
+  type-aliases-package: com.newCoder.community.entity
+  configuration:
+    use-generated-keys: true
+    map-underscore-to-camel-case: true
+logging:
+  level:
+    com.newCoder.community: debug
+  file:
+    name: E:/Java/Community/data/community.log
+
+community:
+  path:
+    domain: http://localhost:8080
+    upload: E:/Java/Community/data/upload
+  thread:
+    corePoolSize: 20
+    maxPoolSize: 20
+    keepAliveTime: 200
+
+
+wk:
+  image:
+    command: D:/Software/wkhtmltopdf/bin/wkhtmltoimage
+    storage: E:/Java/Community/data/wk-images
+
+
+qiniu:
+  key:
+    access: OWUXvqWnRySeVOlPXKUzBbuGzCFyvgfkEd2ZUjnW
+    secret: cNVgQOuuGAOJt962PjZYTGxNOZAqHf-rROftFPD7
+  bucket:
+    header:
+      name: lijie-community-header
+      url: http://rly3hse3r.hn-bkt.clouddn.com
+    share:
+      name: lijie-community-share
+      url: http://rly444xrq.hn-bkt.clouddn.com
+
+caffeine:
+  post:
+    max-size: 15
+    expires-seconds: 180
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
