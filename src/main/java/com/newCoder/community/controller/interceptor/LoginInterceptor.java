@@ -5,7 +5,13 @@ import com.newCoder.community.entity.User;
 import com.newCoder.community.service.UserService;
 import com.newCoder.community.util.CookieUtils;
 import com.newCoder.community.util.HostHolder;
+import com.newCoder.community.util.RedisKeyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -24,6 +30,8 @@ public class LoginInterceptor implements HandlerInterceptor {
     @Autowired
     private HostHolder hostHolder;
     @Autowired
+    private RedisTemplate redisTemplate;
+    @Autowired
     private UserService userService;
 
     @Override
@@ -31,13 +39,19 @@ public class LoginInterceptor implements HandlerInterceptor {
         //从cookie获取凭证
         String ticket = CookieUtils.getValue(request, "ticket");
         if(ticket != null){
-            LoginTicket loginTicket = userService.findLoginTicket(ticket);
+            String redisKey = RedisKeyUtils.getTicketKey(ticket);
+            LoginTicket loginTicket = (LoginTicket) redisTemplate.opsForValue().get(redisKey);
+//            LoginTicket loginTicket = userService.findLoginTicket(ticket);
             //凭证未失效或过期
             if(loginTicket.getStatus() == 0 && loginTicket.getExpired().after(new Date())){
                 //根据凭证查询用户
                 User user = userService.findUserById(loginTicket.getUserId());
                 //在本次请求中持有用户
                 hostHolder.setValue(user);
+                //将权限设置到用户中
+                Authentication authentication = new UsernamePasswordAuthenticationToken(
+                        user,user.getPassword(),userService.getAuthorities(user.getId()));
+                SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
             }
         }
         return true;

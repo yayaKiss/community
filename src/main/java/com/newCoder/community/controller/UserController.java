@@ -1,33 +1,30 @@
 package com.newCoder.community.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.newCoder.community.annotation.LoginRequired;
 import com.newCoder.community.constant.EntityConstant;
 import com.newCoder.community.entity.*;
 import com.newCoder.community.service.*;
 import com.newCoder.community.util.CommunityUtils;
 import com.newCoder.community.util.HostHolder;
-import com.newCoder.community.util.RedisKeyUtils;
+import com.newCoder.community.util.JsonResult;
 import com.newCoder.community.vo.PostVo;
 import com.newCoder.community.vo.ReplyVo;
 import com.newCoder.community.vo.UpdateCodeVo;
+import com.qiniu.util.Auth;
+import com.qiniu.util.StringMap;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author lijie
@@ -46,6 +43,15 @@ public class UserController {
     @Value("${server.servlet.context-path}")
     private String contextPath;
 
+    @Value("${qiniu.key.access}")
+    private String accessKey;
+    @Value("${qiniu.key.secret}")
+    private String secretKey;
+    @Value("${qiniu.bucket.header.name}")
+    private String headerBucketName;
+    @Value("${qiniu.bucket.header.url}")
+    private String headerBucketUrl;
+
     @Autowired
     private HostHolder hostHolder;
     @Autowired
@@ -61,9 +67,32 @@ public class UserController {
 
 
     @GetMapping("/setting.html")
-    @LoginRequired
-    public String setting(){
+//    @LoginRequired
+    public String setting(Model model){
+        //上传文件名称
+        String fileName = CommunityUtils.generateUUID();
+        //设置响应信息
+        StringMap policy = new StringMap();
+        policy.put("returnBody", JSON.toJSONString(JsonResult.ok()));
+        //生成上传凭证
+        Auth auth = Auth.create(accessKey,secretKey);
+        String uploadToken = auth.uploadToken(headerBucketName,fileName,3600,policy);
+
+        model.addAttribute("uploadToken",uploadToken);
+        model.addAttribute("fileName",fileName);
         return "/site/setting";
+    }
+
+    //更新头像路径
+    @PostMapping("/header/url")
+    @ResponseBody
+    public JsonResult updateHeaderUrl(String fileName){
+        if(StringUtils.isEmpty(fileName)){
+            return JsonResult.error("文件名不能为空");
+        }
+        String url = headerBucketUrl + "/" + fileName;
+        userService.updateHeaderUrl(hostHolder.getValue().getId(),url);
+        return JsonResult.ok();
     }
 
     @GetMapping("/forget.html")
@@ -71,7 +100,8 @@ public class UserController {
         return "/site/forget";
     }
 
-    @LoginRequired
+    //废弃
+//    @LoginRequired
     @PostMapping("/upload")
     public String uploadImage(MultipartFile headImage, Model model){
         if(headImage.isEmpty()){
@@ -103,6 +133,7 @@ public class UserController {
         return "redirect:/index";
     }
 
+    //废弃
     //获取服务器（本地）图片
     @GetMapping("/header/{fileName}")
     public void getHeader(@PathVariable("fileName") String fileName,HttpServletResponse response){
@@ -127,7 +158,7 @@ public class UserController {
         }
     }
 
-    @LoginRequired
+//    @LoginRequired
     @PostMapping("/updateCode")
     public String updateCode(UpdateCodeVo vo, Model model){
         User user = hostHolder.getValue();
@@ -189,7 +220,7 @@ public class UserController {
         page.setLimit(5);
         page.setPath("/user/myPost/"+ userId);
 
-        List<DiscussPost> posts = discussPostService.findDiscussPosts(user.getId(), page.getOffset(), page.getLimit());
+        List<DiscussPost> posts = discussPostService.findDiscussPosts(user.getId(), page.getOffset(), page.getLimit(),0);
         List<PostVo> postVos = new ArrayList<>();
         if(posts != null){
             for(DiscussPost post : posts){

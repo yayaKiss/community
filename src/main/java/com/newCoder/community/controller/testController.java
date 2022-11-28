@@ -1,13 +1,16 @@
 package com.newCoder.community.controller;
 
 import com.alibaba.fastjson.JSONObject;
+
 import com.newCoder.community.dao.UserMapper;
 import com.newCoder.community.entity.Page;
 import com.newCoder.community.entity.User;
+import com.newCoder.community.util.CommunityUtils;
 import com.newCoder.community.util.JsonResult;
 import com.newCoder.community.vo.LoginVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,8 +20,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author lijie

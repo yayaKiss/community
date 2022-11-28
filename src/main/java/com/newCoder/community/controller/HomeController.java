@@ -20,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -65,13 +66,13 @@ public class HomeController {
     private String contextPath;
 
 
-    @GetMapping("/index")
+    @GetMapping({"/index","/"})
     //在springMVC中，参数都dispatchServlet自动进行实例化，并将page注入到了model中
-    public String index(Model model, Page page){
+    public String index(Model model, Page page,@RequestParam(value = "orderMode",defaultValue = "0") int orderMode){
         page.setRows(discussPostService.findDiscussPostRows(0));
-        page.setPath("/index");
+        page.setPath("/index?orderMode=" + orderMode);
 
-        List<DiscussPost> list = discussPostService.findDiscussPosts(0, page.getOffset(), page.getLimit());
+        List<DiscussPost> list = discussPostService.findDiscussPosts(0, page.getOffset(), page.getLimit(), orderMode);
         List<Map<String,Object>> discussPosts = new ArrayList<>();
         if(list != null){
             for(DiscussPost post : list){
@@ -91,6 +92,7 @@ public class HomeController {
             }
         }
         model.addAttribute("discussPosts",discussPosts);
+        model.addAttribute("orderMode",orderMode);
         return "/index";
     }
 
@@ -159,7 +161,7 @@ public class HomeController {
 //        String kaptcha = (String) session.getAttribute("kaptcha");
         //从redis中取验证码
         String kaptcha = null;
-        if(kaptchaOwner != null){
+        if(!StringUtils.isEmpty(kaptchaOwner)){
             String redisKey = RedisKeyUtils.getKaptchaKey(kaptchaOwner);
             kaptcha = (String) redisTemplate.opsForValue().get(redisKey);
         }
@@ -187,6 +189,7 @@ public class HomeController {
     @GetMapping("/logout")
     public String logout(@CookieValue("ticket") String ticket,HttpServletRequest request){
         userService.logout(ticket);
+        SecurityContextHolder.clearContext();
         return "redirect:/index";
     }
 
@@ -240,6 +243,11 @@ public class HomeController {
     @GetMapping("/error")
     public String getErrorPage(){
         return "/error/500";
+    }
+
+    @GetMapping("/denied")
+    public String getDeniedPage(){
+        return "/error/404";
     }
 
 }

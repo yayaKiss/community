@@ -22,7 +22,7 @@ public class DiscussPostTest {
     private SensitiveWordFilter sensitiveWordFilter;
     @Test
     public void selectDiscussPost(){
-        List<DiscussPost> discussPosts = discussPostMapper.selectDiscussPosts(4,0,10);
+        List<DiscussPost> discussPosts = discussPostMapper.selectDiscussPosts(4,0,10,0);
         for(DiscussPost discussPost : discussPosts){
             System.out.println(discussPost);
         }
@@ -33,14 +33,15 @@ public class DiscussPostTest {
 
     @Test
     public void insertPost(){
-        DiscussPost post = new DiscussPost();
-        post.setUserId(149);
-        post.setTitle(sensitiveWordFilter.filter("xxx赌博，快来人"));
-        post.setContent(sensitiveWordFilter.filter("来到这个地方，可以赌博，可以开票，加QQ:123456"));
-        post.setCreateTime(new Date());
+        for(int i = 0;i < 300000;i++){
+            DiscussPost post = new DiscussPost();
+            post.setUserId(11);
+            post.setTitle(sensitiveWordFilter.filter("我是管理员"));
+            post.setContent(sensitiveWordFilter.filter("我是管理员，你们都老实点"));
+            post.setCreateTime(new Date());
 
-        discussPostMapper.insertDiscussPost(post);
-        System.out.println(post.getId());
+            discussPostMapper.insertDiscussPost(post);
+        }
     }
 
     @Test

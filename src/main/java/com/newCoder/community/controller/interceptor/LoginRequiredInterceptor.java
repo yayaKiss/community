@@ -16,7 +16,7 @@ import java.lang.reflect.Method;
  * @date 2022-11-13 17:54
  * @Desc
  */
-@Component
+//@Component
 public class LoginRequiredInterceptor implements HandlerInterceptor {
     @Autowired
     private HostHolder hostHolder;

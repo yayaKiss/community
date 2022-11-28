@@ -17,6 +17,7 @@ import java.util.List;
  */
 @Service
 public class MessageServiceImpl implements MessageService {
+
     @Autowired
     private MessageMapper messageMapper;
     @Autowired
@@ -62,5 +63,25 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public int deleteMessage(int id) {
         return messageMapper.deleteMessage(id);
+    }
+
+    @Override
+    public Message findLastedTopic(int userId, String topic) {
+        return messageMapper.selectLastedTopic(userId,topic);
+    }
+
+    @Override
+    public int findTopicCount(int userId, String topic) {
+        return messageMapper.selectTopicCount(userId, topic);
+    }
+
+    @Override
+    public int findTopicUnreadCount(int userId, String topic) {
+        return messageMapper.selectTopicUnreadCount(userId,topic);
+    }
+
+    @Override
+    public List<Message> findTopicMessages(int userId, String topic,int offset,int limit) {
+        return messageMapper.selectTopicMessages(userId,topic, offset, limit);
     }
 }

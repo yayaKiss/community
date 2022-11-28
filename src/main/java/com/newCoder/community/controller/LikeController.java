@@ -1,5 +1,6 @@
 package com.newCoder.community.controller;
 
+import com.newCoder.community.constant.EntityConstant;
 import com.newCoder.community.constant.TopicConstant;
 import com.newCoder.community.entity.Event;
 import com.newCoder.community.entity.User;
@@ -7,7 +8,9 @@ import com.newCoder.community.event.EventProducer;
 import com.newCoder.community.service.LikeService;
 import com.newCoder.community.util.HostHolder;
 import com.newCoder.community.util.JsonResult;
+import com.newCoder.community.util.RedisKeyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -25,6 +28,8 @@ public class LikeController {
     private HostHolder hostHolder;
     @Autowired
     private EventProducer producer;
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @PostMapping("/like")
     @ResponseBody
@@ -53,6 +58,12 @@ public class LikeController {
                     .setData("postId",postId);//到时候需要链到目标帖子
 
             producer.sendEvent(event);
+        }
+
+        //点赞帖子，将帖子id加入到redis集合中，定时统一修改
+        if(entityType == EntityConstant.ENTITY_TYPE_POST){
+            String redisKey = RedisKeyUtils.getScoreKey();
+            redisTemplate.opsForSet().add(redisKey,entityId);
         }
 
         return result;

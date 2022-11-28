@@ -1,7 +1,8 @@
 package com.newCoder.community.config;
 
+import com.newCoder.community.controller.interceptor.DataInterceptor;
 import com.newCoder.community.controller.interceptor.LoginInterceptor;
-import com.newCoder.community.controller.interceptor.LoginRequiredInterceptor;
+import com.newCoder.community.controller.interceptor.MessageInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -17,8 +18,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class MyWebMvcConfig implements WebMvcConfigurer {
     @Autowired
     private LoginInterceptor loginInterceptor;
+//    @Autowired
+//    private LoginRequiredInterceptor loginRequiredInterceptor;
     @Autowired
-    private LoginRequiredInterceptor loginRequiredInterceptor;
+    private MessageInterceptor messageInterceptor;
+    @Autowired
+    private DataInterceptor dateInterceptor;
 
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
@@ -32,7 +37,13 @@ public class MyWebMvcConfig implements WebMvcConfigurer {
         registry.addInterceptor(loginInterceptor)
                 .excludePathPatterns("/**/*.css","/**/*.js","/**/*.png","/**/*.jpg","/**/*.jpeg");
 
-        registry.addInterceptor(loginRequiredInterceptor)
+//        registry.addInterceptor(loginRequiredInterceptor)
+//                .excludePathPatterns("/**/*.css","/**/*.js","/**/*.png","/**/*.jpg","/**/*.jpeg");
+
+        registry.addInterceptor(messageInterceptor)
+                .excludePathPatterns("/**/*.css","/**/*.js","/**/*.png","/**/*.jpg","/**/*.jpeg");
+
+        registry.addInterceptor(dateInterceptor)
                 .excludePathPatterns("/**/*.css","/**/*.js","/**/*.png","/**/*.jpg","/**/*.jpeg");
     }
 }

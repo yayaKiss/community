@@ -4,7 +4,9 @@ import com.newCoder.community.entity.LoginTicket;
 import com.newCoder.community.entity.User;
 import com.newCoder.community.vo.LoginVo;
 import com.newCoder.community.vo.UpdateCodeVo;
+import org.springframework.security.core.GrantedAuthority;
 
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -37,4 +39,6 @@ public interface UserService {
     Map<String, Object> updateCode(int uid, String salt,UpdateCodeVo vo);
 
     User findUserByUserName(String toName);
+
+    Collection<? extends GrantedAuthority> getAuthorities(int userId);
 }

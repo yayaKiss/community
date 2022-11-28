@@ -36,4 +36,15 @@ public interface MessageMapper {
     //删除某条私信
     int deleteMessage(int id);
 
+    //查询用户主题的最新一条消息
+    Message selectLastedTopic(int userId,String topic);
+
+    //查询用户主题的数量
+    int selectTopicCount(int userId,String topic);
+
+    //查询用户主题未读数量
+    int selectTopicUnreadCount(int userId,String topic);
+
+    //查询某个主题所有message详情
+    List<Message> selectTopicMessages(int userId,String topic,int offset,int limit);
 }

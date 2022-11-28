@@ -1,64 +1,6 @@
-server:
-  port: 8080
-  servlet:
-    context-path: /community
-
 spring:
-  thymeleaf:
-    cache: false
-  datasource:
-    type: com.alibaba.druid.pool.DruidDataSource
-    url: jdbc:mysql://localhost/community?useSSL=true&useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
-    username: root
-    password: root
-    driver-class-name: com.mysql.cj.jdbc.Driver
+  profiles:
+    active: develop
 
-
-  mail:
-    host: smtp.qq.com
-    port: 465
-    username: 2085576513@qq.com
-    password: zfgyutghrstacafc
-    protocol: smtps
-    properties:
-      mail:
-        smtp:
-          ssl:
-            enable: true
-
-
-  redis:
-    host: 192.168.200.138
-    password: li158158@yt
-
-
-  kafka:
-    bootstrap-servers: localhost:9092
-    consumer:
-      group-id: test-consumer-group
-      enable-auto-commit: true
-      auto-commit-interval: 3000
-
-
-mybatis:
-  mapper-locations: classpath:/mapper/**/*.xml
-  type-aliases-package: com.newCoder.community.entity
-  configuration:
-    use-generated-keys: true
-    map-underscore-to-camel-case: true
 logging:
-  level:
-    com.newCoder.community: debug
-  file:
-    name: E:/Java/Community/community.log
-
-community:
-  path:
-    domain: http://localhost:8080
-    upload: E:/Java/Community/data/upload
-  thread:
-    corePoolSize: 20
-    maxPoolSize: 20
-    keepAliveTime: 200
-
-
+  config: classpath:logback-spring-${spring.profiles.active}.xml

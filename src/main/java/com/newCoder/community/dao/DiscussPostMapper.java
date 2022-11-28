@@ -14,7 +14,7 @@ import java.util.List;
 @Mapper
 public interface DiscussPostMapper {
 
-    List<DiscussPost> selectDiscussPosts(@Param("userId") int userId, @Param("offset") int offset, @Param("limit") int limit);
+    List<DiscussPost> selectDiscussPosts(@Param("userId") int userId, @Param("offset") int offset, @Param("limit") int limit,int orderMode);
 
     int selectDiscussPostRows(@Param("userId") int userId);
 
@@ -22,5 +22,16 @@ public interface DiscussPostMapper {
 
     DiscussPost selectDiscussPostDetail(@Param("postId") int id);
 
-    int updatePostCommentCount(int id,int commentCount);
+    int updatePostCommentCount(int entityId, int count);
+
+    //置顶
+    int updateType(int id,int type);
+
+    //加精
+    int updateStatus(int id,int status);
+
+    //修改分数
+    int updateScore(int id,double score);
+
+
 }

@@ -30,4 +30,16 @@ public interface MessageService {
     int updateStatus(List<Integer> ids,int status);
 
     int deleteMessage(int id);
+
+    //查询主题最新消息
+    Message findLastedTopic(int userId,String topic);
+
+    //查询某个主题数量
+    int findTopicCount(int userId,String topic);
+
+    //查询某个主题未读数量
+    int findTopicUnreadCount(int userId,String topic);
+
+    //查询某个主题所有消息
+    List<Message> findTopicMessages(int userId,String topic,int offset,int limit);
 }

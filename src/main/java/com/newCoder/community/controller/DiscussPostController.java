@@ -1,17 +1,15 @@
 package com.newCoder.community.controller;
 
 import com.newCoder.community.constant.EntityConstant;
-import com.newCoder.community.entity.Comment;
-import com.newCoder.community.entity.DiscussPost;
-import com.newCoder.community.entity.Page;
-import com.newCoder.community.entity.User;
-import com.newCoder.community.service.CommentService;
-import com.newCoder.community.service.DiscussPostService;
-import com.newCoder.community.service.LikeService;
-import com.newCoder.community.service.UserService;
+import com.newCoder.community.constant.TopicConstant;
+import com.newCoder.community.entity.*;
+import com.newCoder.community.event.EventProducer;
+import com.newCoder.community.service.*;
 import com.newCoder.community.util.HostHolder;
 import com.newCoder.community.util.JsonResult;
+import com.newCoder.community.util.RedisKeyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -37,6 +35,11 @@ public class DiscussPostController {
     private HostHolder hostHolder;
     @Autowired
     private LikeService likeService;
+    @Autowired
+    private EventProducer producer;
+    @Autowired
+    private RedisTemplate redisTemplate;
+
 
     @PostMapping("/publish")
     @ResponseBody
@@ -45,9 +48,25 @@ public class DiscussPostController {
         if(user == null){
             return JsonResult.error(403,"您还没有登录");
         }
-        discussPostService.publish(user.getId(),title,content);
-        return JsonResult.ok("发布成功");
+        DiscussPost post = new DiscussPost();
+        post.setUserId(user.getId());
+        post.setTitle(title);
+        post.setContent(content);
+        post.setCreateTime(new Date());
+        discussPostService.publish(post);
 
+        //触发发帖事件，将数据保存到elasticsearch中
+        Event event = new Event()
+                .setTopic(TopicConstant.PUBLISH_COMMENT)
+                .setUserId(user.getId())
+                .setEntityType(EntityConstant.ENTITY_TYPE_POST)
+                .setEntityId(post.getId());
+        producer.sendEvent(event);
+
+        String redisKey = RedisKeyUtils.getScoreKey();
+        redisTemplate.opsForSet().add(redisKey,post.getId());
+
+        return JsonResult.ok("发布成功");
     }
 
     @GetMapping("/detail/{postId}")
@@ -121,4 +140,68 @@ public class DiscussPostController {
         return "/site/discuss-detail";
     }
 
+    //置顶
+    @PostMapping("/top")
+    @ResponseBody
+    public JsonResult topDiscussPost(int id){
+        User user = hostHolder.getValue();
+        DiscussPost post = discussPostService.findDiscussPostDetail(id);
+        //置顶 | 不置顶
+        int type = post.getType() ^ 1;
+        discussPostService.topPost(id,type);
+
+        //触发发帖事件
+        Event event = new Event()
+                .setTopic(TopicConstant.POST_TOP)
+                .setUserId(user.getId())
+                .setEntityId(EntityConstant.ENTITY_TYPE_POST)
+                .setEntityId(id);
+        producer.sendEvent(event);
+
+        return JsonResult.ok().put("type",type);
+    }
+
+    //加精
+    @PostMapping("/wonderful")
+    @ResponseBody
+    public JsonResult wonderfulDiscussPost(int id){
+        User user = hostHolder.getValue();
+        DiscussPost post = discussPostService.findDiscussPostDetail(id);
+        //加精 | 不加精
+        int status = post.getStatus() ^ 1;
+        discussPostService.wonderfulPost(id,status);
+
+        //触发发帖事件
+        Event event = new Event()
+                .setTopic(TopicConstant.POST_WONDERFUL)
+                .setUserId(user.getId())
+                .setEntityId(EntityConstant.ENTITY_TYPE_POST)
+                .setEntityId(id);
+        producer.sendEvent(event);
+
+        //重新计算分数，postId加入到redis集合中
+        String redisKey = RedisKeyUtils.getScoreKey();
+        redisTemplate.opsForSet().add(redisKey,id);
+
+        return JsonResult.ok().put("status",status);
+    }
+
+
+    //删除
+   @PostMapping("/delete")
+   @ResponseBody
+    public JsonResult deleteDiscussPost(int id){
+        User user = hostHolder.getValue();
+        discussPostService.deletePost(id);
+
+       //触发发帖事件
+       Event event = new Event()
+               .setTopic(TopicConstant.POST_DELETE)
+               .setUserId(user.getId())
+               .setEntityId(EntityConstant.ENTITY_TYPE_POST)
+               .setEntityId(id);
+       producer.sendEvent(event);
+
+       return JsonResult.ok();
+   }
 }

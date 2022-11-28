@@ -54,7 +54,7 @@ public class CommentServiceImpl implements CommentService {
         int rows = commentMapper.insertComment(comment);
 
         //修改帖子评论数量
-        if(comment.getEntityType() == EntityConstant.ENTITY_TYPE_COMMENT){
+        if(comment.getEntityType() == EntityConstant.ENTITY_TYPE_POST){
             int count = commentMapper.selectCommentsCount(comment.getEntityType(),comment.getEntityId());
             discussPostMapper.updatePostCommentCount(comment.getEntityId(),count);
         }

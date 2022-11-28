@@ -68,4 +68,38 @@
         where id = #{id}
     </update>
 
+    <select id="selectLastedTopic" resultType="Message">
+        select <include refid="selectFields"></include>
+        from message
+        where id in(
+            SELECT MAX(id) FROM message
+            WHERE STATUS != 2 AND from_id = 1 AND to_id =#{userId} and conversation_id = #{topic}
+        )
+    </select>
+
+    <select id="selectTopicCount" resultType="int">
+        select count(*)
+        from message
+        where STATUS != 2 AND from_id = 1 AND to_id =#{userId} AND conversation_id = #{topic}
+
+
+    </select>
+
+    <select id="selectTopicUnreadCount" resultType="int">
+        select count(*)
+        from message
+        where STATUS = 0 AND from_id = 1 AND to_id =#{userId}
+        <if test="topic!=null">
+            AND conversation_id = #{topic}
+        </if>
+
+    </select>
+    <select id="selectTopicMessages" resultType="com.newCoder.community.entity.Message">
+        select <include refid="selectFields"></include>
+        from message
+        where from_id = 1 and to_id = #{userId} and status != 2
+        and conversation_id = #{topic}
+        limit #{offset},#{limit}
+    </select>
+
 </mapper>
